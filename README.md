@@ -13,8 +13,6 @@ This will build and install the plugin to the local maven repo.
 
 ./gradle install
 
-This 
-
 Usage
 -----
 
@@ -31,10 +29,16 @@ apply plugin: 'gradle.plugins.mqsicreatebar'
 ```
 
 Tasks
-=====
+-----
 
-gradle clean - Cleans the build folder
-gradle build - Builds the project and creates the bar file
-    Parameters:
-		-DoverridesFile=my.properties
-		If defined will create a second bar file with the overridden properties
+Clean
+
+```
+gradle clean
+```
+
+Build
+
+```
+gradle build -DoverridesFile=my.properties
+```
