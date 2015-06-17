@@ -31,13 +31,22 @@ apply plugin: 'gradle.plugins.mqsicreatebar'
 Tasks
 -----
 
-Clean
+### Clean ###
+Deletes all bar files from the build folder
 
 ```
 gradle clean
 ```
 
-Build
+### Build ###
+Creates a bar file from the build.gradle using the default properties stored in the broker.xml
+
+```
+gradle build
+```
+
+### Build with Overrides ###
+Creats a bar file from the build.gradle using and overrides the default properties in the broker.xml file
 
 ```
 gradle build -DoverridesFile=my.properties
