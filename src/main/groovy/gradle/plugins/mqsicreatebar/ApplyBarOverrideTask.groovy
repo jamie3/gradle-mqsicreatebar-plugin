@@ -17,28 +17,42 @@ class ApplyBarOverrideTask extends DefaultTask {
 		def prefix = project.name + "-" + project.version
 		def ext = ".bar"
 		def barFileName = "build/" + prefix + ext
-		def barFileNameStage = "build/" + "$prefix-stage$ext"
-		def barFileNameProd = "build/" + "$prefix-prod$ext"
 		
-		doApplyBarOverride(barFileName, barFileNameStage, "build-stage.properties")
-		doApplyBarOverride(barFileName, barFileNameProd, "build-prod.properties")
+		// if the user has supplied a properties file at the command line
+		// then we will apply the properties using mqsiapplybaroverride command
+		// otherwise we will leave the bar file alone
+		
+		def overridesFile = System.properties['overridesFile']
+		
+		if (overridesFile) { 
+			doApplyBarOverride(barFileName, overridesFile)
+		}
 	}
 	
-	def doApplyBarOverride(def barFileNameSrc, def barFileNameTgt, def propsFileName) {
+	def doApplyBarOverride(def barFileName, String propsFileName) {
 	
-		println "Creating $barFileNameTgt"
+		println "Applying bar override for $barFileName"
+		
+		def newFileName
+		
+		int index = propsFileName.indexOf(".properties")
+		if (index > 0) {
+			newFileName = "build/" + project.name + "-" + project.version + "-" + propsFileName.substring(0, index) + ".bar"
+		} else {
+			throw new Exception("Property overridesFile must be .properties file")
+		}
 		
 		// copy the original bar file and apply the overrides
-		new File(barFileNameTgt).bytes = new File(barFileNameSrc).bytes
+		new File(newFileName).bytes = new File(barFileName).bytes
 		
 		// command to apply the bar override with stage/prod deployment descriptors
-		def cmd = "mqsiapplybaroverride -b $barFileNameTgt -k ${project.name} -p $propsFileName"
+		def cmd = "mqsiapplybaroverride -b $newFileName -k ${project.name} -p $propsFileName"
 		println cmd
 	
 		def process = cmd.execute()
 		println process.text
 		if (process.exitValue() != 0) {
-			throw new Exception("mqsiapplybaroverride failed for file $barFileNameTgt. Error code " + process.exitValue())
+			throw new Exception("mqsiapplybaroverride failed for file $barFileName. Error code " + process.exitValue())
 		}
 	}
 }
