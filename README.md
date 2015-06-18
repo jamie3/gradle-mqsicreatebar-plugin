@@ -39,7 +39,7 @@ gradle clean
 ```
 
 ### Build ###
-Creates a bar file from the build.gradle using the default properties stored in the broker.xml
+Creates a bar file from the build.gradle using the default properties from the project
 
 ```
 gradle build

@@ -11,16 +11,21 @@ import org.gradle.api.tasks.TaskAction
  */
 class ApplyBarOverrideTask extends DefaultTask {
 	
+	def prefix
+	def ext
+	def barFileName
+	
 	@TaskAction
 	def applyBarOverride() {
 		
-		def prefix = project.name + "-" + project.version
-		def ext = ".bar"
-		def barFileName = "build/" + prefix + ext
+		prefix = project.name.replaceAll(" ", "_") + "-" + project.version
+		ext = ".bar"
+		barFileName = "build/" + prefix + ext
 		
 		// if the user has supplied a properties file at the command line
 		// then we will apply the properties using mqsiapplybaroverride command
 		// otherwise we will leave the bar file alone
+		println barFileName
 		
 		def overridesFile = System.properties['overridesFile']
 		
@@ -29,7 +34,7 @@ class ApplyBarOverrideTask extends DefaultTask {
 		}
 	}
 	
-	def doApplyBarOverride(def barFileName, String propsFileName) {
+	def doApplyBarOverride(String propsFileName) {
 	
 		println "Applying bar override for $barFileName"
 		
@@ -37,7 +42,8 @@ class ApplyBarOverrideTask extends DefaultTask {
 		
 		int index = propsFileName.indexOf(".properties")
 		if (index > 0) {
-			newFileName = "build/" + project.name + "-" + project.version + "-" + propsFileName.substring(0, index) + ".bar"
+			def classifier = propsFileName.substring(0, index)
+			newFileName = "build/" + prefix + "-" + project.version + "-" + classifier + ".bar"
 		} else {
 			throw new Exception("Property overridesFile must be .properties file")
 		}
@@ -46,7 +52,7 @@ class ApplyBarOverrideTask extends DefaultTask {
 		new File(newFileName).bytes = new File(barFileName).bytes
 		
 		// command to apply the bar override with stage/prod deployment descriptors
-		def cmd = "mqsiapplybaroverride -b $newFileName -k ${project.name} -p $propsFileName"
+		def cmd = "mqsiapplybaroverride -b $newFileName -k $barFileName -p $propsFileName"
 		println cmd
 	
 		def process = cmd.execute()

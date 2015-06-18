@@ -14,13 +14,13 @@ class CreateApplicationBarTask extends DefaultTask {
 	@TaskAction
 	def createBar() {
 		
-		def barFileName = "build/" + project.name + "-" + project.version + ".bar"
+		def barFileName = "build/" + project.name.replaceAll(" ", "_") + "-" + project.version + ".bar"
 			
 		if (new File(barFileName).exists() == false) {
 		
 			println "Creating $barFileName"
 		
-			def cmd = "mqsicreatebar -data ../ -b $barFileName -d ${project.name} -version ${project.version} -cleanBuild -deployAsSource"
+			def cmd = "mqsicreatebar -data ../ -b $barFileName -d \"${project.name}\" -version ${project.version} -cleanBuild -deployAsSource"
 			println cmd
 			
 			def process = cmd.execute()
