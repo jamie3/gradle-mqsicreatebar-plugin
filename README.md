@@ -86,8 +86,24 @@ gradle build
 ```
 
 ### Build with Overrides ###
-Creats a bar file from the build.gradle using and overrides the default properties in the broker.xml file
+Creates a bar file from the build.gradle and overrides the default properties in the broker.xml file. For example if we were building verion 1.0 of ApplicationA then:
 
 ```
-gradle build -DoverridesFile=my.properties
+gradle build -DoverridesFile=prod.properties
 ```
+
+This will create the following bar file:
+
+```
+build/ApplicationA-1.0-prod.bar
+```
+
+An example of what a properties file could contain:
+
+```
+com.github.jamie3.MyFlow\#Input Directory=properties
+
+filenamePattern=abc.xml
+
+```
+
