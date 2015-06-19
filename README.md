@@ -42,6 +42,7 @@ Currently this plugin only supports building IIB Application projects (e.g. mqsi
 
 The build.gradle file should be placed in the folder alongside your Application project (not the workspace folder). For example:
 
+```
 /workspace/
    /ApplicationA
       build.gradle
@@ -49,10 +50,11 @@ The build.gradle file should be placed in the folder alongside your Application 
      build.gradle
    /LIB1
    /LIB2
-   
+```   
    
 In the above example you would need a build.gradle file for each Application project. When executing "gradle build" task in each project the following will be created.
 
+```
 /workspace/
    /ApplicationA
       build.gradle
@@ -64,6 +66,7 @@ In the above example you would need a build.gradle file for each Application pro
          ApplicationB-1.0.bar
    /LIB1
    /LIB2
+```
 
 Tasks
 -----
