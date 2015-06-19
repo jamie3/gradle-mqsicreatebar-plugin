@@ -101,7 +101,7 @@ build/ApplicationA-1.0-prod.bar
 An example of what a properties file could contain:
 
 ```
-com.github.jamie3.MyFlow\#Input Directory=properties
+com.github.jamie3.MyFlow#Input Directory=properties
 
 filenamePattern=abc.xml
 
