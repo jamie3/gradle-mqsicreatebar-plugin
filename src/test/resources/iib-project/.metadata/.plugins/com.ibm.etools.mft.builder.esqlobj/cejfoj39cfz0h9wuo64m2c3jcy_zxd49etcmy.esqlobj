@@ -1,0 +1,42 @@
+CREATE FUNCTION "msgmap:exact-type"(sourceRef REFERENCE, nsPrefix CHAR, ns NAMESPACE, typeLiteral CHAR) RETURNS BOOLEAN
+	BEGIN
+		DECLARE xsi NAMESPACE 'http://www.w3.org/2001/XMLSchema-instance';
+		DECLARE instanceTypeLiteral CHARACTER;
+		--get the last colon
+		SET instanceTypeLiteral = sourceRef.xsi:type;
+		DECLARE lastColon INT;
+		SET lastColon = POSITION(':' IN instanceTypeLiteral REPEAT -1);
+		IF lastColon = 0 THEN
+			--there is no namespace in the instance, just compare the strings
+			IF LENGTH(ns) = 0 THEN
+				IF (instanceTypeLiteral = typeLiteral) THEN
+					RETURN TRUE;
+				ELSE
+					RETURN FALSE;
+				END IF;
+			ELSE
+				RETURN FALSE;
+			END IF;
+		ELSE
+			DECLARE instanceNsPrefix CHARACTER;
+			SET instanceNsPrefix = SUBSTRING(instanceTypeLiteral FROM 1 FOR lastColon-1);
+			DECLARE typeName CHARACTER;
+			SET typeName = SUBSTRING(instanceTypeLiteral FROM lastColon + 1);
+			
+			IF LENGTH(ns) > 0 THEN
+				-- After MRM parser, instanceNsPrefix is the URL; after XMLNSC parser, instanceNsPrefix is the prefix.
+				IF (ns = instanceNsPrefix) OR (nsPrefix = instanceNsPrefix) THEN
+					IF (typeLiteral = typeName) THEN
+						RETURN TRUE;
+					ELSE
+						RETURN FALSE;
+					END IF;
+				ELSE
+					RETURN FALSE;
+				END IF;
+			ELSE
+				-- ns is NULL but instanceNs is not null
+				RETURN FALSE;
+			END IF;
+		END IF;
+	END;

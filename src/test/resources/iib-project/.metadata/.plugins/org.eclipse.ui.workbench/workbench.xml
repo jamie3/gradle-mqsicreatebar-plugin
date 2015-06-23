@@ -74,9 +74,6 @@
 <filter element="Types (Schema Files)"/>
 <filter element="Empty Parent Broker Schemas"/>
 </filters>
-<selection>
-<element path="0*/example-integration/example/flow/Flow1.msgflow"/>
-</selection>
 <expanded>
 <element path="example-application"/>
 <element path="example-application|Flows"/>
