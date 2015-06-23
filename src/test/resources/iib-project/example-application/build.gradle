@@ -1,0 +1,24 @@
+group='com.westjet.integration'
+version='1.0'
+
+buildscript {
+	repositories {
+        maven {
+			url uri('file:/C:/dev/.m2/repository')
+        }
+    }
+    dependencies {
+        classpath 'gradle.plugins.mqsicreatebar:gradle-mqsicreatebar-plugin:1.0'
+    }
+}
+
+apply plugin: 'gradle.plugins.mqsicreatebar'
+
+barFile {
+	File2Q_ACARS {
+		include=["File2Q_ACARS.msgflow"]
+	}
+	File2Q_MCL {
+		include=["File2Q_MCL.msgflow"]
+	}
+}

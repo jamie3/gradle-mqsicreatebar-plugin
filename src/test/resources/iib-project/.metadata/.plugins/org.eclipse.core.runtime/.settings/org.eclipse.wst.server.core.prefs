@@ -1,0 +1,3 @@
+#Mon Jun 22 09:45:26 MDT 2015
+runtimes=<?xml version\="1.0" encoding\="UTF-8"?><runtimes>\r\n  <runtime id\="com.ibm.ws.ast.st.runtime.v61.mb" id-set\="true" location\="C\:/Program Files (x86)/IBM/IntegrationToolkit90/runtimes/mb_v61_stub" locked\="true" name\="WebSphere Message Broker stub" runtime-type-id\="com.ibm.ws.ast.st.runtime.v61.mb" stub\="true" timestamp\="0"/>\r\n  <runtime id\="Web Preview Server Runtime" id-set\="true" location\="C\:/dev/code/gradle-mqsicreatebar-plugin/src/test/resources/iib-project/.metadata/.plugins/com.ibm.etools.wdt.server.core/tmp1" name\="Web Preview Server Runtime" runtime-type-id\="com.ibm.etools.wdt.server.runtime.10" timestamp\="0"/>\r\n</runtimes>
+eclipse.preferences.version=1

@@ -1,0 +1,12 @@
+#Mon Jun 22 09:45:25 MDT 2015
+earContent=
+idPerspectiveHierarchyView=com.ibm.etools.ui.navigator.SDExplorer
+useSingleRootStructure=true
+ejb_interface_package_suffix=view
+ejb_business_interaface_annotation_in_interface=false
+ejb_business_interaface_annotation_in_bean=true
+com.ibm.etools.j2ee.preferences.j2eePerspective=true
+com.ibm.etools.j2ee.preferences.wsCleaned=true
+eclipse.preferences.version=1
+viewerSyncForWebservices=false
+addToEarByDefault=true
