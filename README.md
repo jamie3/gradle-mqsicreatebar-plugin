@@ -4,7 +4,12 @@ IBM Integration Bus MQSI Create Bar Gradle Plugin
 Overview
 --------
 
-A plugin that allows you to execute the mqsicreatebar and mqsibaroverride command from gradle.
+A gradle plugin that makes it easier to create bar files used for deploying onto IBM Integration Bus v9.0. The plugin executes the mqsicreatebar and mqsibaroverride commands. The plugin is useful in CI tools such as Jenkins.
+
+Pre-Requisites
+--------------
+
+The mqsi environment must be initialized before the plugin can be used. For example, on windows you must run the gradle tasks within the IBM Integration Console (e.g. mqsiprofile.cmd).
 
 Build
 -----
