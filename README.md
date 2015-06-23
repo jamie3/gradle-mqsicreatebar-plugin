@@ -64,6 +64,8 @@ In the above example you would need a build.gradle file for each Application pro
      build.gradle
       /build/
          ApplicationB-1.0.bar
+   /IntegrationProjectA
+      /build/
    /LIB1
    /LIB2
 ```
@@ -78,14 +80,14 @@ Deletes all bar files from the build folder
 gradle clean
 ```
 
-### Build ###
+### Build Application Projects ###
 Creates a bar file from the build.gradle using the default properties from the project
 
 ```
 gradle build
 ```
 
-### Build with Overrides ###
+### Build Application with Overrides ###
 Creates a bar file from the build.gradle and overrides the default properties in the broker.xml file. For example if we were building verion 1.0 of ApplicationA then:
 
 ```
@@ -106,4 +108,33 @@ com.github.jamie3.MyFlow#Input Directory=properties
 filenamePattern=abc.xml
 
 ```
+
+### Build Integration Projects ###
+Creates bar file(s) from an integration project. For an integration project you must create a build.config file alongside the build.gradle file. An example of the build.config file is shown below.
+
+```
+barFile{
+	Flow1 {
+		include=["flow/Flow1.msgflow"]
+	}
+	Flow2 {
+		include=["flow/Flow2.msgflow"]
+	}
+}
+```
+
+Afterwards you can execute the build command
+
+```
+gradle build
+```
+
+This will produce two bar files: 
+
+```
+build/projectName-1.0-Flow1.bar
+build/projectName-1.0-Flow2.bar
+```
+
+Note: Apply bar override for integration projects is not supported... yet.
 
