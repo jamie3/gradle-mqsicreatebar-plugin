@@ -6,6 +6,7 @@ apply plugin: 'maven'
 dependencies {
 	compile gradleApi()
 	compile localGroovy()
+	//compile 'junit:junit:4.12'
 }
 
 group='gradle.plugins.mqsicreatebar'
