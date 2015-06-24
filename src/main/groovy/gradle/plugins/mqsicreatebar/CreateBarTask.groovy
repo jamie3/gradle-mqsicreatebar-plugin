@@ -2,6 +2,7 @@ package gradle.plugins.mqsicreatebar
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
+import static gradle.plugins.mqsicreatebar.Debug.*
 
 /**
  * Task which executes the IBM mqsicreatebar command
@@ -27,10 +28,11 @@ class CreateBarTask extends DefaultTask {
 			def barFileName = "build/" + project.name.replaceAll(" ", "_") + "-" + project.version + ".bar"
 				
 			if (new File(barFileName).exists() == false) {
-				println "Creating $barFileName"
 			
 				def cmd ="mqsicreatebar -data ../ -b $barFileName -a \"${project.name}\" -version ${project.version} -cleanBuild -deployAsSource -trace"
 				executeCommand(cmd)
+				
+				debug "Created $barFileName"
 			}
 			
 		} else if (ProjectUtil.isMessageBrokerProject(project)) {
@@ -55,11 +57,11 @@ class CreateBarTask extends DefaultTask {
 				
 				if (new File(barFileName).exists() == false) {
 				
-					println "Creating $barFileName"
-				
 					def cmd = "mqsicreatebar -data ../ -b $barFileName -p \"${project.name}\" -o $o -cleanBuild -deployAsSource -trace"
 					
 					executeCommand(cmd)
+					
+					println "Created $barFileName"
 				}
 			}
 		} else {
@@ -69,7 +71,7 @@ class CreateBarTask extends DefaultTask {
 	
 	def executeCommand(String cmd) {
 		
-		println cmd
+		debug cmd
 		
 		def process = cmd.execute()
 		
