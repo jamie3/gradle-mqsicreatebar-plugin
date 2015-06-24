@@ -18,42 +18,11 @@ class CreateBarTask extends DefaultTask {
 			throw new Exception("Missing project version")
 		}
 		
-		// TODO 
-		def projectFile = new File(project.projectDir.absolutePath + "/.project")
+		def projectFile = ProjectUtil.getProjectFile(project)
 		
-		if (projectFile.exists() == false) {
-			throw new FileNotFoundException(".project", ".project file does not exist")
-		}
-		
-		def projectDescription = new XmlSlurper().parse(projectFile)
-		def isApplicationProject = false
-		def isMessageBrokerProject = false
-		
-		// check the .project file
-		// if the project is an Application then
-		// if it is a regular integration project then user needs to define what flows should be included
-		projectDescription.natures?.nature?.each { it ->
-			def text = it.text()
-			if (text == 'com.ibm.etools.msgbroker.tooling.applicationNature') {
-				isApplicationProject = true
-			}
-			if (text == 'com.ibm.etools.msgbroker.tooling.messageBrokerProjectNature') {
-				isMessageBrokerProject = true
-			}
-		}
-		
-		if (isMessageBrokerProject == false) {
-			throw new Exception("The project does not appear to be a Message Broker project")
-		}
-		
-		if (isApplicationProject) {
+		if (ProjectUtil.isApplicationProject(project)) {
+			
 			println "Building application project ${project.name}"
-		} else {
-			println "Building integration project ${project.name}"
-		}
-		
-		
-		if (isApplicationProject) {
 			
 			def barFileName = "build/" + project.name.replaceAll(" ", "_") + "-" + project.version + ".bar"
 				
@@ -64,10 +33,12 @@ class CreateBarTask extends DefaultTask {
 				executeCommand(cmd)
 			}
 			
-		} else {
+		} else if (ProjectUtil.isMessageBrokerProject(project)) {
+		
+			println "Building integration project ${project.name}"
 		
 			// when we have an integration project the user must explicitly define which files should be included in the bar file
-			def config = new ConfigSlurper().parse(new File(project.projectDir.absolutePath + "/build.config").toURL())
+			def config = ProjectUtil.getConfigFile(project)
 			
 			config.barFile?.each { it ->
 				
@@ -91,6 +62,8 @@ class CreateBarTask extends DefaultTask {
 					executeCommand(cmd)
 				}
 			}
+		} else {
+			throw new Exception("The project does not appear to be a Message Broker project")
 		}
 	}
 	

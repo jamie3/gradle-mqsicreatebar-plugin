@@ -143,3 +143,13 @@ build/projectName-1.0-Flow2.bar
 
 Note: Apply bar override for integration projects is not supported... yet.
 
+
+### Debugging ###
+Debugging can be enabled in the plugin as follows:
+
+
+```
+gradle <task> -Ddebug
+
+```
+
