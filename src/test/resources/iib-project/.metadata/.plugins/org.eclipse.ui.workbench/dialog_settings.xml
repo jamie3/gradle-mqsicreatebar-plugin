@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<section name="Workbench">
-	<section name="NewWizardAction">
-		<item value="com.ibm.etools.mft.util.ui.wizards.newMessageBrokerProject" key="NewWizardSelectionPage.STORE_SELECTED_ID"/>
-		<list key="NewWizardSelectionPage.STORE_EXPANDED_CATEGORIES_ID">
-			<item value="com.ibm.etools.mft.wizards.mbappdevcat"/>
-		</list>
-	</section>
-</section>
