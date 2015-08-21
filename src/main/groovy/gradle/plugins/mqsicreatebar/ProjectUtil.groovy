@@ -1,16 +1,19 @@
 package gradle.plugins.mqsicreatebar
 
+import org.gradle.api.Project
+
 class ProjectUtil {
 
 	private ProjectUtil() {
 		
 	}
 	
-	static File getProjectFile(def project) {
+	static File getProjectFile(Project project) {
 		def projectFile = new File(project.projectDir.absolutePath + "/.project")
 		
 		if (projectFile.exists() == false) {
-			throw new FileNotFoundException(".project", ".project file does not exist")
+			return null
+			//throw new FileNotFoundException(".project", "$projectFile file does not exist")
 		}
 		
 		return projectFile
@@ -22,17 +25,20 @@ class ProjectUtil {
 	
 	static boolean isApplicationProject(def project) {
 		
-		def projectFile = getProjectFile(project)
-		
-		def projectDescription = new XmlSlurper().parse(projectFile)
 		def isApplicationProject = false
 		
-		// check the .project file
-		// if the project is an Application then
-		projectDescription.natures?.nature?.each { it ->
-			def text = it.text()
-			if (text == 'com.ibm.etools.msgbroker.tooling.applicationNature') {
-				isApplicationProject = true
+		def projectFile = getProjectFile(project)
+		
+		if (projectFile != null) {
+			def projectDescription = new XmlSlurper().parse(projectFile)
+			
+			// check the .project file
+			// if the project is an Application then
+			projectDescription.natures?.nature?.each { it ->
+				def text = it.text()
+				if (text == 'com.ibm.etools.msgbroker.tooling.applicationNature') {
+					isApplicationProject = true
+				}
 			}
 		}
 		

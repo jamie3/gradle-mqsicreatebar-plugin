@@ -1,0 +1,11 @@
+CREATE PROCEDURE WBIMB_ESQL_SYS_LIB_RestoreCurrentSourcePosition(INOUT sourceStackPtr REFERENCE)
+	BEGIN
+		DECLARE nestingLevel REFERENCE TO sourceStackPtr.nestingLevel;
+		
+		IF (nestingLevel >= 1) THEN
+			SET sourceStackPtr.occurrence[nestingLevel] = NULL;
+			SET nestingLevel = nestingLevel - 1;
+		ELSE
+			--throw exception
+		END IF;		
+	END;

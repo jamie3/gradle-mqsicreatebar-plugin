@@ -1,0 +1,30 @@
+CREATE FUNCTION "msgmap:occurrence"(sourceRef REFERENCE, sourcePath CHAR, sourceStackPtr REFERENCE) RETURNS INT
+	BEGIN
+		
+		DECLARE nestingLevel REFERENCE TO sourceStackPtr.nestingLevel;
+
+		IF (nestingLevel IS NULL) THEN
+			--source path could not be found in loop stack, check for existence and return 1
+			IF (LASTMOVE(sourceRef)) THEN
+				return 1;
+			ELSE 
+				return -1;
+			END IF;
+		ELSE
+			--check all levels to see if path is being iterated upon
+			DECLARE i INT 1;
+			WHILE (i <= nestingLevel) DO
+				IF (sourcePath = sourceStackPtr.sourceLiteral[i]) THEN
+					return sourceStackPtr.occurrence[i];
+				END IF;
+				SET i = i + 1;
+			END WHILE;
+			
+			--source path could not be found in loop stack, check for existence and return 1
+			IF (LASTMOVE(sourceRef)) THEN
+				return 1;
+			ELSE 
+				return -1;
+			END IF;
+		END IF;
+	END;

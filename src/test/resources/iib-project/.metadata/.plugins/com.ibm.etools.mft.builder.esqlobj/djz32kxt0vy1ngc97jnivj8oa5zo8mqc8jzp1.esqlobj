@@ -1,0 +1,5 @@
+CREATE FUNCTION "xs:duration"(arg CHAR) RETURNS INTERVAL
+BEGIN
+	--return whatever the parser cast to
+	RETURN WBIMB_ESQL_SYS_LIB_iso8601_to_INTERVAL(arg);
+END;

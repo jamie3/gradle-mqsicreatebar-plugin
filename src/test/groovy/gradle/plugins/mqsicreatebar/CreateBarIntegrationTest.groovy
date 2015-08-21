@@ -43,13 +43,20 @@ class CreateBarIntegrationTest {
 	 * Creates a bar file from an IIB Application project
 	 */
 	@Test
-	def void createIntegrationBar_test() {
+	def void createIntegrationBarSimple_test() {
 		
-		def projectDir = "src/test/resources/iib-project/example-integration"
+		def barFile = new File("build/simple-1.0.bar")
+		def projectDir = "src/test/resources/integration-test/projects"
+		def outputFile = projectDir + "/" + barFile
+		
+		if (barFile.exists()) {
+			barFile.delete()
+		}
+		
 		
 		Project project = ProjectBuilder.builder()
 			.withProjectDir(new File(projectDir))
-			.withName("example-integration")
+			.withName("projects")
 			.build()
 		project.apply plugin: 'gradle.plugins.mqsicreatebar'
 		
@@ -59,6 +66,6 @@ class CreateBarIntegrationTest {
 		project.tasks.clean.execute()
 		project.tasks.createBar.execute()
 		
-		assertTrue "Bar file not found", new File("build/example-integration-1.0.bar").exists()
+		assertTrue "Bar file $barFile not found", outputFile.exists()
 	}
 }

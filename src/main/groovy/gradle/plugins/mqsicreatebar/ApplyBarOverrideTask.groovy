@@ -39,11 +39,12 @@ class ApplyBarOverrideTask extends DefaultTask {
 				applyBarOverrideFromProperties(barFileName, overridesFile)
 			}
 			
-		} else if (ProjectUtil.isMessageBrokerProject(project)) {
+		} else {
+		// if (ProjectUtil.isMessageBrokerProject(project)) {
 				
 			// apply bar override for integration project
 			
-			println "Applying bar override for ${project.name}"
+			/*println "Applying bar override for ${project.name}"
 			
 			def config = ProjectUtil.getConfigFile(project)
 			
@@ -51,7 +52,7 @@ class ApplyBarOverrideTask extends DefaultTask {
 			config.barFile?.each { it ->
 				def barSubName = it.getKey()
 				applyBarOverrideFromConfig(barSubName, config.barFile.getAt(barSubName))
-			}
+			}*/
 		}
 	}
 	

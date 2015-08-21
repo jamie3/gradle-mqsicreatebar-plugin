@@ -7,14 +7,16 @@ class BarFileConfigTest {
 	@org.junit.Test
 	def void barFileConfig_test() {
 		
-		def config = new ConfigSlurper().parse(new File('src/test/resources/barFile.config').toURL())
+		def config = new ConfigSlurper().parse(new File('src/test/resources/test.config').toURL())
 		
 		assertNotNull config.barFile
+		assertNotNull config.workspace
 		
-		config.barFile.each { it ->
-			def barName = it.getKey()
-			println barName
-			def include = it.getAt(barName).include
+		println config.files
+		
+		config.files.each { it ->
+			def filePath = it.toString()
+			println filePath
 		}
 	}
 }

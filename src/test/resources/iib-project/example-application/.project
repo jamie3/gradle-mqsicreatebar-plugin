@@ -84,5 +84,6 @@
 	<natures>
 		<nature>com.ibm.etools.msgbroker.tooling.applicationNature</nature>
 		<nature>com.ibm.etools.msgbroker.tooling.messageBrokerProjectNature</nature>
+		<nature>com.ibm.etools.mft.bar.ext.barnature</nature>
 	</natures>
 </projectDescription>

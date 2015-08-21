@@ -1,0 +1,20 @@
+CREATE PROCEDURE WBIMB_ESQL_SYS_LIB_PushGlobalStackFrame(INOUT stackPtr REFERENCE)
+	BEGIN
+		DECLARE globalPtr REFERENCE TO stackPtr.GLOBAL_STACK;
+		DECLARE localPtr REFERENCE TO stackPtr.LOCAL_STACK;
+		DECLARE globalDepth REFERENCE TO globalPtr.frameDepth;
+		
+		--GLOBAL_STACK must be created
+		IF (NOT LASTMOVE(globalPtr)) THEN
+			THROW EXCEPTION;
+		END IF;
+		
+		IF (globalDepth IS NULL) THEN
+			SET globalDepth = 1;
+		ELSE
+			SET globalDepth = globalDepth + 1;
+		END IF;
+		
+		DETACH localPtr;
+		ATTACH localPtr TO globalPtr.frame[globalDepth] AS LASTCHILD;
+	END;

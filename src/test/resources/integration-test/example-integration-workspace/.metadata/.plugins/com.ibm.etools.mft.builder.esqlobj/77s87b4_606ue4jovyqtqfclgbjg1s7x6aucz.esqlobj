@@ -1,0 +1,631 @@
+CREATE FUNCTION WBIMB_ESQL_SYS_LIB_iso8601_to_INTERVAL(duration CHAR) RETURNS INTERVAL
+BEGIN
+	--The unprocessed part of the input
+	DECLARE unprocessed CHAR TRIM(duration);
+	--Strip off (and remember) the optional sign character
+	DECLARE negative CHAR;
+	SET negative = LEFT(unprocessed , 1);
+	IF negative = '-' THEN
+		SET unprocessed = RIGHT(unprocessed , LENGTH(duration) - 1);
+	ELSE
+		SET negative = '';
+	END IF;
+	--Duration literals must start with a 'P'
+	DECLARE durationLiteral boolean (LEFT(unprocessed , 1) = 'P');
+	IF NOT durationLiteral THEN
+		THROW USER EXCEPTION MESSAGE 2950 VALUES ('Invalid duration format');
+	ELSE
+		SET unprocessed = RIGHT(unprocessed , LENGTH(unprocessed) - 1);
+	END IF;
+	--Allocate the optional component values
+	DECLARE YearDur CHAR;
+	SET YearDur = NULL;
+	DECLARE YearProcessed BOOLEAN false;
+	DECLARE MonthDur CHAR;
+	SET MonthDur = NULL;
+	DECLARE MonthProcessed BOOLEAN false;
+	DECLARE DayDur CHAR;
+	SET DayDur = NULL;
+	DECLARE DayProcessed BOOLEAN false;
+	DECLARE HourDur CHAR;
+	SET HourDur = NULL;
+	DECLARE HourProcessed BOOLEAN false;
+	DECLARE MinuteDur CHAR;
+	SET MinuteDur = NULL;
+	DECLARE MinuteProcessed BOOLEAN false;
+	DECLARE SecondDur CHAR;
+	SET SecondDur = NULL;
+	DECLARE SecondProcessed BOOLEAN false;
+	--State variable for processing time components
+	DECLARE TimeProcessed BOOLEAN false;
+
+	WHILE LENGTH(unprocessed) > 0 DO
+		--Compute the integer value of the 8601 duration component
+		DECLARE nextChar CHAR LEFT(unprocessed , 1);
+		IF nextChar = 'T' THEN
+
+			IF TimeProcessed THEN
+				--Format error: duplicate time separator
+				THROW USER EXCEPTION MESSAGE 2950 VALUES ('Invalid duration format', 'Duplicate Time separator');
+			END IF;
+			--Process the Time separator but don't try to consume next number
+			SET YearProcessed = TRUE;
+			SET MonthProcessed = TRUE;
+			SET DayProcessed = TRUE;
+			SET TimeProcessed = TRUE;
+			SET unprocessed = RIGHT(unprocessed , LENGTH(unprocessed) - 1);
+
+		ELSE
+
+			DECLARE i INT 1;
+			DECLARE dot BOOLEAN FALSE;
+
+			WHILE WBIMB_ESQL_SYS_LIB_isDigit(nextChar) OR nextChar = '.' DO
+				SET i = i + 1;
+				IF nextChar = '.' THEN 
+					SET dot = TRUE;
+				END IF;
+				SET nextChar = SUBSTRING(unprocessed from i for 1);
+			END WHILE;
+			--Validate the component structure
+			IF i = 1 or nextChar = '' or nextChar IS NULL THEN
+				--Format error; the number has no length; the first character was not a digit
+				--Format error: the string is truncated and has no component character after the number
+				THROW USER EXCEPTION MESSAGE 2950 VALUES ('Invalid duration format', 'The number has no length, the first character is not a digit or the string is truncated');
+			END IF;
+			--Extract the value of the component as an INT
+			DECLARE value CHAR LEFT(unprocessed , (i-1));
+
+			IF nextChar = 'Y' THEN
+
+				IF dot THEN
+					-- Format string error; year component has decimal
+					THROW USER EXCEPTION MESSAGE 2950 VALUES ('Invalid duration format', 'Year component has a decimal');
+				END IF;
+
+				IF NOT (YearProcessed OR MonthProcessed OR DayProcessed OR TimeProcessed) THEN
+					-- Can only process year once, before month, day, or time.
+					SET YearProcessed = TRUE;
+					SET YearDur = value;
+				ELSE
+					-- Format string error; year component is out of position
+					THROW USER EXCEPTION MESSAGE 2950 VALUES ('Invalid duration format', 'Year component is out of position');
+				END IF;
+
+			ELSEIF nextChar = 'M' THEN				
+
+				IF dot THEN
+					-- Format string error; month component has decimal
+					THROW USER EXCEPTION MESSAGE 2950 VALUES ('Invalid duration format', 'Month component has a decimal');
+				END IF;
+
+				IF NOT (MonthProcessed OR DayProcessed OR TimeProcessed) THEN
+					--Its a month 'M'
+					SET YearProcessed = TRUE;
+					SET MonthProcessed = TRUE;
+					SET MonthDur = value;
+
+				ELSEIF (TimeProcessed AND NOT MinuteProcessed) THEN
+					--Its a minute 'M'
+					SET MinuteProcessed = TRUE;
+					IF LENGTH(value) = 1 THEN
+						SET MinuteDur = '0' || value;
+					ELSE
+						SET MinuteDur = value;
+					END IF;
+				ELSE
+					--Format string error; Minute or Month component out of position
+					THROW USER EXCEPTION MESSAGE 2950 VALUES ('Invalid duration format', 'Minute or Month component is out of position');
+				END IF;
+
+			ELSEIF nextChar = 'D' THEN
+
+				IF dot THEN
+					-- Format string error; Day component has decimal
+					THROW USER EXCEPTION MESSAGE 2950 VALUES ('Invalid duration format', 'Day component has a decimal');
+				END IF;
+
+				IF NOT (DayProcessed Or TimeProcessed) THEN
+
+					SET YearProcessed = TRUE;
+					SET MonthProcessed = TRUE;
+					SET DayProcessed = TRUE;
+					IF LENGTH(value) = 1 THEN
+						SET DayDur = '0' || value;
+					ELSE
+						SET DayDur = value;
+					END IF;
+
+				ELSE
+					--Format String error Day component out of position
+					THROW USER EXCEPTION MESSAGE 2950 VALUES ('Invalid duration format', 'Day component is out of position');
+				END IF;
+
+			ELSEIF nextChar = 'H' THEN
+
+				IF dot THEN
+					-- Format string error; Hour component has decimal
+					THROW USER EXCEPTION MESSAGE 2950 VALUES ('Invalid duration format', 'Hour component has a decimal');
+				END IF;
+
+				IF TimeProcessed AND NOT HourProcessed THEN
+
+					SET HourProcessed = TRUE;
+					SET HourDur = value;
+
+					IF LENGTH(value) = 1 THEN
+						SET HourDur = '0' || value;
+					ELSE
+						SET HourDur = value;
+					END IF;
+				ELSE
+					--Format error: no Time component separator 'T'
+					--Format error: Hour component already processed
+					--Format error: Hour component out of position
+					THROW USER EXCEPTION MESSAGE 2950 VALUES ('Invalid duration format', 'The time separator may be missing, the hour component may have been processed already, or the hour component is out of position');
+				END IF;
+
+			ELSEIF nextChar = 'S' THEN
+				--'dot' is allowed to be true in this case
+
+				IF TimeProcessed AND NOT SecondProcessed THEN
+
+					SET HourProcessed = TRUE;
+					SET MinuteProcessed = TRUE;
+					SET SecondProcessed = TRUE;
+					IF LENGTH(value) = 1 THEN
+						SET SecondDur = '0' || value;
+					ELSE
+						SET SecondDur = value;
+					END IF;
+
+				ELSE
+					--Format error: no Time component separator 'T'
+					--Format error: Second component already processed
+					--Format error: Second component out of position
+					THROW USER EXCEPTION MESSAGE 2950 VALUES ('Invalid duration format', 'The time separator may be missing, the second component may be been processed already, or the second component is out of position');
+				END IF;
+
+			ELSE
+				--Format string error: unrecognized character
+				THROW USER EXCEPTION MESSAGE 2950 VALUES ('Invalid duration format');
+			END IF;
+			--Remove the component from the begining of the string
+			SET unprocessed = RIGHT(unprocessed , LENGTH(unprocessed) - i);
+
+		END IF;
+
+	END WHILE;
+
+	DECLARE seconds DECIMAL;
+	DECLARE minutes INT;
+	DECLARE hours INT;
+	DECLARE days INT;
+	DECLARE months INT;
+	DECLARE years INT;
+	DECLARE SecondDurAsDec DECIMAL;
+	DECLARE MinuteDurAsInt INT;
+	DECLARE HourDurAsInt INT;
+	DECLARE DayDurAsInt INT;
+	DECLARE MonthDurAsInt INT;
+	DECLARE YearDurAsInt INT;
+	
+	--Use the various values to determine the right kind of interval
+	IF YearDur IS NOT NULL THEN
+		IF MonthDur IS NOT NULL THEN
+			IF DayDur IS NULL AND HourDur IS NULL AND SecondDur IS NULL THEN
+				--ensure month is a double digit
+				--Normalize month if > 12
+				SET YearDurAsInt = CAST(YearDur AS INT);
+				SET MonthDurAsInt = CAST(MonthDur AS INT);
+				SET months = MOD(MonthDurAsInt, 12);
+				SET years = MonthDurAsInt/12;
+				SET MonthDurAsInt = MonthDurAsInt + months;
+				SET YearDurAsInt = YearDurAsInt + years;
+				--convert back to char
+				SET MonthDur = CAST(months AS CHAR);
+				SET YearDur = CAST(YearDurAsInt AS CHAR);
+
+				IF (LENGTH(MonthDur) = 1) THEN
+					SET MonthDur = '0' || MonthDur;
+				END IF;
+				RETURN CAST((negative || YearDur || '-' || MonthDur) AS INTERVAL YEAR TO MONTH);
+			ELSE
+				--INTERVAL doesn't support this case
+				THROW USER EXCEPTION MESSAGE 2951 VALUES ('Unsupported duration format');
+			END IF;
+		ELSE
+			IF DayDur IS NULL AND HourDur IS NULL AND SecondDur IS NULL THEN
+				RETURN CAST(negative || YearDur AS INTERVAL YEAR);
+			ELSE
+				--INTERVAL doesn't support this case
+				THROW USER EXCEPTION MESSAGE 2951 VALUES ('Unsupported duration format');
+			END IF;
+		END IF;
+	ELSEIF MonthDur IS NOT NULL THEN --YearDur IS NULL
+		IF DayDur IS NULL AND HourDur IS NULL AND SecondDur IS NULL THEN
+			--ensure month is a double digit
+			IF (LENGTH(MonthDur) = 1) THEN
+				SET MonthDur = '0' || MonthDur;
+			END IF;
+			RETURN CAST(negative || MonthDur AS INTERVAL MONTH);
+		ELSE
+			--INTERVAL doesn't support this case
+			THROW USER EXCEPTION MESSAGE 2951 VALUES ('Unsupported duration format');
+		END IF;
+	ELSEIF DayDur IS NOT NULL THEN
+		--YearDur IS NULL and MonthDur IS NULL
+		IF HourDur IS NOT NULL THEN
+			IF MinuteDur IS NOT NULL THEN
+				IF SecondDur IS NOT NULL THEN
+					--normalize the seconds
+					SET SecondDurAsDec = CAST(SecondDur AS DECIMAL);
+					SET minutes = TRUNCATE(SecondDurAsDec/60, 0);
+					--find the precision points and truncate
+					DECLARE prec INT;
+					SET prec = LENGTH(SUBSTRING(SecondDur FROM POSITION('.' IN SecondDur)))-1;
+					SET seconds = ROUND((SecondDurAsDec/60 - minutes)*60, prec);
+					SET SecondDur = CAST(seconds AS CHAR);
+					IF (LENGTH(SecondDur) = 1) THEN
+						SET SecondDur = '0' || SecondDur;
+					ELSE
+						--This could be a decimal representation - i.e. 2.0 is not acceptables
+						DECLARE decPos INT;
+						SET decPos = POSITION('.' IN SecondDur);
+						IF (decPos > 0) THEN
+							--find the length of the integer portion
+							IF LENGTH(SUBSTRING(SecondDur FROM 0 FOR decPos))=1 THEN
+								SET SecondDur = '0' || SecondDur;
+							END IF;
+						END IF;
+					END IF;
+					SET MinuteDurAsInt = CAST(MinuteDur AS INT);
+					SET minutes = minutes + MinuteDurAsInt;
+					IF (minutes > 59) THEN
+						SET hours = minutes/60;
+						SET minutes = MOD(minutes, 60);
+						SET HourDurAsInt = CAST(HourDur AS INT);
+						SET hours = hours + HourDurAsInt;
+					END IF;
+
+					SET MinuteDur = CAST(minutes AS CHAR);
+					IF (LENGTH(MinuteDur) = 1) THEN
+						SET MinuteDur = '0' || MinuteDur;
+					END IF;
+
+					IF (hours > 23) THEN
+						SET DayDurAsInt = CAST(DayDur AS INT);
+						SET days = hours/24;
+						SET hours = MOD(hours, 24);
+
+						SET DayDur = CAST(days + DayDurAsInt AS CHAR);
+						IF (LENGTH(DayDur) = 1) THEN
+							SET DayDur = '0' || DayDur;
+						END IF;
+					END IF;
+
+					IF (hours IS NOT NULL) THEN
+						SET HourDur = CAST(hours AS CHAR);
+						IF (LENGTH(HourDur) = 1) THEN
+							SET HourDur = '0' || HourDur;
+						END IF;
+					END IF;
+
+					RETURN CAST((negative || DayDur || ' ' || HourDur || ':' || MinuteDur || ':' || SecondDur) AS INTERVAL DAY TO SECOND);
+				ELSE
+					--see if minutes need to be normalized
+					SET MinuteDurAsInt = CAST(MinuteDur AS INT);
+					SET minutes = MinuteDurAsInt;
+					IF (minutes > 59) THEN
+						SET hours = minutes/60;
+						SET minutes = MOD(minutes, 60);
+						SET HourDurAsInt = CAST(HourDur AS INT);
+						SET hours = hours + HourDurAsInt;
+					END IF;
+
+					SET MinuteDur = CAST(minutes AS CHAR);
+					IF (LENGTH(MinuteDur) = 1) THEN
+						SET MinuteDur = '0' || MinuteDur;
+					END IF;
+
+					IF (hours > 23) THEN
+						SET DayDurAsInt = CAST(DayDur AS INT);
+						SET days = hours/24;
+						SET hours = MOD(hours, 24);
+						SET DayDur = CAST(days + DayDurAsInt AS CHAR);
+						IF (LENGTH(DayDur) = 1) THEN
+							SET DayDur = '0' || DayDur;
+						END IF;
+					END IF;
+
+					IF (hours IS NOT NULL) THEN
+						SET HourDur = CAST(hours AS CHAR);
+						IF (LENGTH(HourDur) = 1) THEN
+							SET HourDur = '0' || HourDur;
+						END IF;
+					END IF;
+					RETURN CAST((negative || DayDur || ' ' || HourDur || ':' || MinuteDur) AS INTERVAL DAY TO MINUTE);
+				END IF;
+			ELSE
+				-- MinuteDur may not NULL
+				--normalize the seconds
+				SET SecondDurAsDec = CAST(SecondDur AS DECIMAL);
+				SET minutes = TRUNCATE(SecondDurAsDec/60, 0);
+				--find the precision points and truncate
+				DECLARE prec INT;
+				SET prec = LENGTH(SUBSTRING(SecondDur FROM POSITION('.' IN SecondDur)))-1;
+				SET seconds = ROUND((SecondDurAsDec/60 - minutes)*60, prec);
+				SET SecondDur = CAST(seconds AS CHAR);
+				IF (LENGTH(SecondDur) = 1) THEN
+					SET SecondDur = '0' || SecondDur;
+				ELSE
+					--This could be a decimal representation - i.e. 2.0 is not acceptables
+					DECLARE decPos INT;
+					SET decPos = POSITION('.' IN SecondDur);
+					IF (decPos > 0) THEN
+						--find the length of the integer portion
+						IF LENGTH(SUBSTRING(SecondDur FROM 0 FOR decPos))=1 THEN
+							SET SecondDur = '0' || SecondDur;
+						END IF;
+					END IF;
+				END IF;
+				SET MinuteDurAsInt = 0;
+				IF (minutes > 59) THEN
+					SET hours = minutes/60;
+					SET minutes = MOD(minutes, 60);
+					SET HourDurAsInt = CAST(HourDur AS INT);
+					SET hours = hours + HourDurAsInt;
+				END IF;
+
+				SET MinuteDur = CAST(minutes AS CHAR);
+				IF (LENGTH(MinuteDur) = 1) THEN
+					SET MinuteDur = '0' || MinuteDur;
+				END IF;
+
+				IF (hours > 23) THEN
+					SET DayDurAsInt = CAST(DayDur AS INT);
+					SET days = hours/24;
+					SET hours = MOD(hours, 24);
+					SET DayDur = CAST(days + DayDurAsInt AS CHAR);
+					IF (LENGTH(DayDur) = 1) THEN
+						SET DayDur = '0' || DayDur;
+					END IF;
+				END IF;
+				IF (hours IS NOT NULL) THEN
+					SET HourDur = CAST(hours AS CHAR);
+					IF (LENGTH(HourDur) = 1) THEN
+						SET HourDur = '0' || HourDur;
+					END IF;
+				END IF;
+				IF SecondDur IS NOT NULL THEN
+					IF (MinuteDur IS NULL) THEN
+						RETURN CAST((negative || DayDur || ' ' || HourDur || ':00:' || SecondDur) AS INTERVAL DAY TO SECOND);
+					ELSE
+						RETURN CAST((negative || DayDur || ' ' || HourDur || ':' || MinuteDur || ':' || SecondDur) AS INTERVAL DAY TO SECOND);
+					END IF;
+				ELSE
+					--normalize the hours
+					SET hours = CAST(HourDur AS INT);
+					IF (hours > 23) THEN
+						SET DayDurAsInt = CAST(DayDur AS INT);
+						SET days = hours/24;
+						SET hours = MOD(hours, 24);
+						SET DayDur = CAST(days + DayDurAsInt AS CHAR);
+						IF (LENGTH(DayDur) = 1) THEN
+							SET DayDur = '0' || DayDur;
+						END IF;
+					END IF;					
+
+					SET HourDur = CAST(hours AS CHAR);
+					IF (LENGTH(HourDur) = 1) THEN
+						SET HourDur = '0' || HourDur;
+					END IF;
+
+					RETURN CAST((negative || DayDur || ' ' || HourDur) AS INTERVAL DAY TO HOUR);
+				END IF;
+			END IF;
+		ELSEIF MinuteDur IS NOT NULL THEN
+			--HourDur MAY BE NULL, need to evaluate MinuteDur to find out
+			SET MinuteDurAsInt = CAST(MinuteDur AS INT);
+			SET HourDurAsInt = CAST(HourDur AS INT);
+			SET minutes = MOD(MinuteDurAsInt, 60);
+			SET hours = MinuteDurAsInt/60;
+			SET hours = MOD(hours, 24);
+			SET days = hours/24;
+			--since HourDur is NULL, treat as 0
+			SET HourDur = CAST(hours AS CHAR);
+			IF HourDur IS NOT NULL THEN
+				IF LENGTH(HourDur) = 1 THEN
+					SET HourDur = '0' || HourDur;
+				END IF;
+			END IF;
+
+			IF days > 0 THEN
+				SET DayDur = CAST((CAST(DayDur AS INT) + days) AS CHAR);
+			END IF;
+
+			SET MinuteDur = CAST(minutes AS CHAR);
+
+			IF SecondDur IS NOT NULL THEN
+				IF HourDur IS NULL THEN
+					RETURN CAST((negative || DayDur || ' 00:' || MinuteDur || ':' || SecondDur) AS INTERVAL DAY TO SECOND);
+				ELSE
+					RETURN CAST((negative || DayDur || ' ' || HourDur || ':' || MinuteDur || ':' || SecondDur) AS INTERVAL DAY TO SECOND);
+				END IF;
+			ELSE
+				IF HourDur IS NULL THEN
+					RETURN CAST((negative || DayDur || ' 00:' || MinuteDur) AS INTERVAL DAY TO MINUTE);
+				ELSE
+					RETURN CAST((negative || DayDur || ' ' || HourDur || ':' || MinuteDur) AS INTERVAL DAY TO MINUTE);
+				END IF;				
+
+			END IF;
+		ELSEIF SecondDur IS NOT NULL THEN
+			-- HourDur IS NULL, MinuteDur IS NULL
+			RETURN CAST((negative || DayDur || ' 00:00:' || SecondDur) AS INTERVAL DAY TO SECOND);
+		ELSE
+			-- HourDur IS NULL, MinuteDur IS NULL, SecondDur IS NULL
+			RETURN CAST(negative || DayDur AS INTERVAL DAY);
+		END IF;
+	ELSEIF HourDur IS NOT NULL THEN
+		IF MinuteDur IS NOT NULL THEN
+			IF SecondDur IS NOT NULL THEN
+				--normalize the seconds
+				SET SecondDurAsDec = CAST(SecondDur AS DECIMAL);
+				SET minutes = TRUNCATE(SecondDurAsDec/60, 0);
+				--find the precision points and truncate
+				DECLARE prec INT;
+				SET prec = LENGTH(SUBSTRING(SecondDur FROM POSITION('.' IN SecondDur)))-1;
+				SET seconds = ROUND((SecondDurAsDec/60 - minutes)*60, prec);
+				SET SecondDur = CAST(seconds AS CHAR);
+				IF (LENGTH(SecondDur) = 1) THEN
+					SET SecondDur = '0' || SecondDur;
+				ELSE
+					--This could be a decimal representation - i.e. 2.0 is not acceptables
+					DECLARE decPos INT;
+					SET decPos = POSITION('.' IN SecondDur);
+					IF (decPos > 0) THEN
+						--find the length of the integer portion
+						IF LENGTH(SUBSTRING(SecondDur FROM 0 FOR decPos))=1 THEN
+							SET SecondDur = '0' || SecondDur;
+						END IF;
+					END IF;
+				END IF;
+				SET MinuteDurAsInt = CAST(MinuteDur AS INT);
+				SET minutes = minutes + MinuteDurAsInt;
+				IF (minutes > 59) THEN
+					SET hours = minutes/60;
+					SET minutes = MOD(minutes, 60);
+					SET HourDurAsInt = CAST(HourDur AS INT);
+					SET hours = hours + HourDurAsInt;
+				END IF;
+
+				SET MinuteDur = CAST(minutes AS CHAR);
+				IF (LENGTH(MinuteDur) = 1) THEN
+					SET MinuteDur = '0' || MinuteDur;
+				END IF;
+
+				IF (hours IS NOT NULL) THEN
+					SET HourDur = CAST(hours AS CHAR);
+					IF (LENGTH(HourDur) = 1) THEN
+						SET HourDur = '0' || HourDur;
+					END IF;
+				END IF;
+				RETURN CAST((negative || HourDur || ':' || MinuteDur || ':' || SecondDur) AS INTERVAL HOUR TO SECOND);
+			ELSE
+				SET MinuteDurAsInt = CAST(MinuteDur AS INT);
+				SET minutes = MinuteDurAsInt;
+				IF (minutes > 59) THEN
+					SET hours = minutes/60;
+					SET minutes = MOD(minutes, 60);
+					SET HourDurAsInt = CAST(HourDur AS INT);
+					SET hours = hours + HourDurAsInt;
+				END IF;
+
+				SET MinuteDur = CAST(minutes AS CHAR);
+				IF (LENGTH(MinuteDur) = 1) THEN
+					SET MinuteDur = '0' || MinuteDur;
+				END IF;
+
+				IF (hours IS NOT NULL) THEN
+					SET HourDur = CAST(hours AS CHAR);
+					IF (LENGTH(HourDur) = 1) THEN
+						SET HourDur = '0' || HourDur;
+					END IF;
+				END IF;				
+
+				RETURN CAST((negative || HourDur || ':' || MinuteDur) AS INTERVAL HOUR TO MINUTE);
+			END IF;
+		ELSEIF SecondDur IS NOT NULL THEN
+			--minutes may not be null
+			--normalize the seconds
+			SET SecondDurAsDec = CAST(SecondDur AS DECIMAL);
+			SET minutes = TRUNCATE(SecondDurAsDec/60, 0);
+			--find the precision points and truncate
+			DECLARE prec INT;
+			SET prec = LENGTH(SUBSTRING(SecondDur FROM POSITION('.' IN SecondDur)))-1;
+			SET seconds = ROUND((SecondDurAsDec/60 - minutes)*60, prec);
+			SET SecondDur = CAST(seconds AS CHAR);
+			IF (LENGTH(SecondDur) = 1) THEN
+				SET SecondDur = '0' || SecondDur;
+			ELSE
+				--This could be a decimal representation - i.e. 2.0 is not acceptables
+				DECLARE decPos INT;
+				SET decPos = POSITION('.' IN SecondDur);
+				IF (decPos > 0) THEN
+					--find the length of the integer portion
+					IF LENGTH(SUBSTRING(SecondDur FROM 0 FOR decPos))=1 THEN
+						SET SecondDur = '0' || SecondDur;
+					END IF;
+				END IF;
+			END IF;
+
+			IF (minutes > 59) THEN
+				SET hours = minutes/60;
+				SET minutes = MOD(minutes, 60);
+				SET HourDurAsInt = CAST(HourDur AS INT);
+				SET hours = hours + HourDurAsInt;
+			END IF;
+
+			SET MinuteDur = CAST(minutes AS CHAR);
+			IF (LENGTH(MinuteDur) = 1) THEN
+				SET MinuteDur = '0' || MinuteDur;
+			END IF;
+
+			IF (hours IS NOT NULL) THEN
+				SET HourDur = CAST(hours AS CHAR);
+				IF (LENGTH(HourDur) = 1) THEN
+					SET HourDur = '0' || HourDur;
+				END IF;
+			END IF;
+
+			IF MinuteDur IS NULL THEN
+				RETURN CAST((negative || HourDur || ':00:' || SecondDur) AS INTERVAL HOUR TO SECOND);
+			ELSE
+				RETURN CAST((negative || HourDur || ':' || MinuteDur || ':' || SecondDur) AS INTERVAL HOUR TO SECOND);
+			END IF;
+		ELSE
+			RETURN CAST(negative || HourDur AS INTERVAL HOUR);
+		END IF;
+	ELSEIF MinuteDur IS NOT NULL THEN
+		IF SecondDur IS NOT NULL THEN
+			--normalize the seconds
+			SET SecondDurAsDec = CAST(SecondDur AS DECIMAL);
+			SET minutes = TRUNCATE(SecondDurAsDec/60, 0);
+			--find the precision points and truncate
+			DECLARE prec INT;
+			SET prec = LENGTH(SUBSTRING(SecondDur FROM POSITION('.' IN SecondDur)))-1;
+			SET seconds = ROUND((SecondDurAsDec/60 - minutes)*60, prec);
+			SET SecondDur = CAST(seconds AS CHAR);
+			IF (LENGTH(SecondDur) = 1) THEN
+				SET SecondDur = '0' || SecondDur;
+			ELSE
+				--This could be a decimal representation - i.e. 2.0 is not acceptables
+				DECLARE decPos INT;
+				SET decPos = POSITION('.' IN SecondDur);
+				IF (decPos > 0) THEN
+					--find the length of the integer portion
+					IF LENGTH(SUBSTRING(SecondDur FROM 0 FOR decPos))=1 THEN
+						SET SecondDur = '0' || SecondDur;
+					END IF;
+				END IF;
+			END IF;
+
+			SET MinuteDurAsInt = CAST(MinuteDur AS INT);
+			SET minutes = minutes + MinuteDurAsInt;
+
+			SET MinuteDur = CAST(minutes AS CHAR);
+			IF (LENGTH(MinuteDur) = 1) THEN
+				SET MinuteDur = '0' || MinuteDur;
+			END IF;
+
+			RETURN CAST((negative || MinuteDur || ':' || SecondDur) AS INTERVAL MINUTE TO SECOND);
+		ELSE
+			RETURN CAST(negative || MinuteDur AS INTERVAL MINUTE);
+		END IF;
+	ELSEIF SecondDur IS NOT NULL THEN
+		RETURN CAST(negative || SecondDur AS INTERVAL SECOND);
+	ELSE
+		THROW USER EXCEPTION MESSAGE 2951 VALUES ('Unsupported duration format');
+	END IF;
+END;

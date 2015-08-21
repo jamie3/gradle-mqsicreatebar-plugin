@@ -1,0 +1,8 @@
+CREATE FUNCTION WBIMB_ESQL_SYS_LIB_iso8601dateTime_to_TIMESTAMP (dateTime CHAR ) RETURNS TIMESTAMP
+BEGIN
+	--The as-yet unprocessed part of the input
+	DECLARE result CHAR TRIM(dateTime);
+	SET result = REPLACE(result,'T',' ');
+	--Let the cast handle any mismatch, timezones, etc.
+	RETURN CAST(result AS TIMESTAMP);
+END;

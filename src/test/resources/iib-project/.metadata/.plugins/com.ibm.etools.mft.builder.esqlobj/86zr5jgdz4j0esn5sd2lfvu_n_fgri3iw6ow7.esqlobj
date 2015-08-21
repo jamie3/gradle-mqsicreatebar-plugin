@@ -1,0 +1,20 @@
+CREATE PROCEDURE WBIMB_ESQL_SYS_LIB_PopGlobalStackFrame(INOUT stackPtr REFERENCE)
+	BEGIN
+		DECLARE globalPtr REFERENCE TO stackPtr.GLOBAL_STACK;
+		DECLARE globalDepth REFERENCE TO globalPtr.frameDepth;
+		--clean out the local stack
+		DELETE FIELD stackPtr.LOCAL_STACK;
+
+		DECLARE localInfo REFERENCE TO globalPtr.frame[globalDepth].LOCAL_STACK;
+		DETACH localInfo;
+		ATTACH localInfo TO stackPtr AS FIRSTCHILD;
+		
+		DELETE FIELD globalPtr.frame.frame[globalDepth];
+		
+		IF (globalDepth >= 1) THEN
+			SET globalDepth = globalDepth - 1;
+		ELSE
+			--stack was not initialized properly
+			THROW EXCEPTION;
+		END IF;
+	END;

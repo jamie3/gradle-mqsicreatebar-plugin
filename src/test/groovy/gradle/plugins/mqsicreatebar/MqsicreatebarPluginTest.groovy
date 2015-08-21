@@ -20,7 +20,7 @@ class MqsicreatebarPluginTest {
 	
 	@Test
 	def void checkTasks_test() {
-		assertTrue(project.tasks.createnBar instanceof CreateBarTask)
+		assertTrue(project.tasks.createBar instanceof CreateBarTask)
 		assertTrue(project.tasks.applyBarOverride instanceof ApplyBarOverrideTask)
 	}
 	

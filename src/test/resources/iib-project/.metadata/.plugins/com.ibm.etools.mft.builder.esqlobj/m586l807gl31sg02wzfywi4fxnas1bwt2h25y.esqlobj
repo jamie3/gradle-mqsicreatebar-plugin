@@ -1,0 +1,15 @@
+CREATE PROCEDURE WBIMB_ESQL_SYS_LIB_CopyMessageHeaders(IN InputRoot REFERENCE, IN OutputRoot REFERENCE) BEGIN
+		--skip the properties folder
+		DECLARE I INTEGER 2;
+		DECLARE J INTEGER CARDINALITY(InputRoot.*[]);
+		
+		WHILE I < J DO
+			-- loop till the second last one, since the last one is the body
+			CREATE LASTCHILD OF OutputRoot DOMAIN FIELDNAME(InputRoot.[I]);
+			MOVE OutputRoot LASTCHILD;
+			SET OutputRoot = InputRoot.*[I];
+			MOVE OutputRoot PARENT;
+
+			SET I = I + 1;
+		END WHILE;
+	END;

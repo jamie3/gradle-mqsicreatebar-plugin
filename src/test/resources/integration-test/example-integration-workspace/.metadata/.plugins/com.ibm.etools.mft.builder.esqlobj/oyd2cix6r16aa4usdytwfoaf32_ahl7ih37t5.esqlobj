@@ -1,0 +1,9 @@
+CREATE FUNCTION WBIMB_ESQL_SYS_LIB_isDigit (digit CHAR) RETURNS BOOLEAN
+IF digit = '0' or digit = '1' or digit = '2' or digit = '3' or
+	digit = '4' or digit = '5' or digit = '6' or digit = '7' or
+	digit = '8' or digit = '9'
+	THEN
+	RETURN TRUE;
+ELSE
+	RETURN FALSE;
+END IF;

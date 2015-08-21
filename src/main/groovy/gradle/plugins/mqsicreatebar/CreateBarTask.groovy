@@ -35,16 +35,25 @@ class CreateBarTask extends DefaultTask {
 				debug "Created $barFileName"
 			}
 			
-		} else if (ProjectUtil.isMessageBrokerProject(project)) {
+		} else {
+			//if (ProjectUtil.isMessageBrokerProject(project)) {
 		
 			println "Building integration project ${project.name}"
 		
-			// when we have an integration project the user must explicitly define which files should be included in the bar file
 			def config = ProjectUtil.getConfigFile(project)
 			
-			config.barFile?.each { it ->
+			def workspace = config.workspace
+			
+			def projects = config.projects.join(' ')
+			
+			// when we have an integration project the user must explicitly define which files should be included in the bar file
+			def o = config.files?.join(' ')
+			
+			/*each { it ->
 				
 				def key = it.getKey()
+				
+				def workspace = config.workspace
 				def include = config.barFile.getAt(key).include
 				
 				// prepend the project directory name to the file path
@@ -52,34 +61,38 @@ class CreateBarTask extends DefaultTask {
 					include[i] = "\"${project.name}/" + include[i] + "\""
 				}
 				
-				def o = include.join(' ')
-				def barFileName = "build/" + project.name.replaceAll(" ", "_") + "-" + project.version + "-$key" + ".bar"
+				o = include.join(' ')
 				
-				if (new File(barFileName).exists() == false) {
+			}*/
+			
+			def barFileName = "build/" + config.barFileName.replaceAll(" ", "_") + "-" + project.version + ".bar"
+			if (new File(barFileName).exists() == false) {
+			
+				def cmd = "mqsicreatebar -data $workspace -b $barFileName -p \"$projects\" -o \"$o\" -cleanBuild -deployAsSource -trace"
 				
-					def cmd = "mqsicreatebar -data ../ -b $barFileName -p \"${project.name}\" -o $o -cleanBuild -deployAsSource -trace"
-					
-					executeCommand(cmd)
-					
-					println "Created $barFileName"
-				}
+				executeCommand(cmd)
+				
+				println "Created $barFileName"
 			}
-		} else {
-			throw new Exception("The project does not appear to be a Message Broker project")
 		}
+		/*} else {
+			throw new Exception("The project does not appear to be a Message Broker project")
+		}*/
 	}
 	
 	def executeCommand(String cmd) {
 		
 		debug cmd
 		
-		def process = cmd.execute()
+		def workingDir = project.projectDir.absolutePath
+		def process = cmd.execute(null, new File(workingDir))
 		
-		process.consumeProcessOutput(System.out, System.err)
-		process.waitForOrKill(60000L)
-		
+		//process.consumeProcessOutput(System.out, System.err)
+		//process.text.eachLine {println it}
+		process.waitFor()
+
 		if (process.exitValue() != 0) {
-			throw new Exception("mqsicreatebar failed. Error code " + process.exitValue() + ".")
+			throw new Exception("Command failed. Error code " + process.exitValue() + ". " + cmd)
 		}
 		
 	}

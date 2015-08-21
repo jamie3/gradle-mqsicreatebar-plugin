@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<pluginbuilders>
+<ext type="esql">
+<builder class="com.ibm.etools.esql.lang.builder.EsqlLangPluginBuilder" plugin="com.ibm.etools.mft.esql.lang" version="9.0.100.v20131122-1731"/>
+</ext>
+<ext type="msgflow">
+<builder class="com.ibm.etools.mft.flow.builder.MessageFlowPluginBuilder" plugin="com.ibm.etools.mft.flow" version="9.0.200.v20140515-1210"/>
+</ext>
+<ext type="msgmap">
+<builder class="com.ibm.etools.mft.mapping.builder.MappingPluginBuilder" plugin="com.ibm.etools.mft.mapping.builder" version="9.0.101.v20140227-1331"/>
+</ext>
+<ext type="msgnode">
+<builder class="com.ibm.etools.mft.node.builder.MessageNodePluginBuilder" plugin="com.ibm.etools.mft.node" version="9.0.100.v20131122-1731"/>
+</ext>
+</pluginbuilders>

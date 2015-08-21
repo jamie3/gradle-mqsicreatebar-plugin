@@ -1,0 +1,25 @@
+CREATE FUNCTION "msgmap:exact-type-ignore-prefix"(sourceRef REFERENCE, typeLiteral CHAR) RETURNS BOOLEAN
+	BEGIN
+		DECLARE xsi NAMESPACE 'http://www.w3.org/2001/XMLSchema-instance';
+		DECLARE instanceTypeLiteral CHARACTER;
+		--get the last colon
+		SET instanceTypeLiteral = sourceRef.xsi:type;
+		DECLARE lastColon INT;
+		SET lastColon = POSITION(':' IN instanceTypeLiteral REPEAT -1);
+		IF lastColon = 0 THEN
+			--there is no namespace in the instance
+			IF (instanceTypeLiteral = typeLiteral) THEN
+				RETURN TRUE;
+			ELSE
+				RETURN FALSE;
+			END IF;
+		ELSE
+			DECLARE typeName CHARACTER;
+			SET typeName = SUBSTRING(instanceTypeLiteral FROM lastColon + 1);
+			IF (typeLiteral = typeName) THEN
+				RETURN TRUE;
+			ELSE
+				RETURN FALSE;
+			END IF;
+		END IF;
+	END;

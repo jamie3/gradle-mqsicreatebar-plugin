@@ -1,0 +1,26 @@
+CREATE PROCEDURE WBIMB_ESQL_SYS_LIB_SetCurrentSourcePosition(INOUT sourceStackPtr REFERENCE, IN sourceLiteral CHAR, IN refLiteral CHAR)
+	BEGIN
+		DECLARE nestingLevel REFERENCE TO sourceStackPtr.nestingLevel;
+		IF (nestingLevel IS NULL) THEN
+			SET nestingLevel = 1;
+		ELSE
+			SET nestingLevel = nestingLevel + 1;
+		END IF;
+
+		--if the same source path is iterated upon in a nested looping scenario, then the inner most loop occurrence will be
+		--dependent on the occurrence of the outer most loop
+		DECLARE i INT 1;
+		WHILE(i<nestingLevel) DO
+			IF (refLiteral = sourceStackPtr.sourceLiteral[i]) THEN
+				SET sourceStackPtr.occurrence[nestingLevel] = sourceStackPtr.occurrence[i];
+			END IF;
+				
+			SET i = i + 1;
+		END WHILE;
+		
+		IF (sourceStackPtr.occurrence[nestingLevel] IS NULL) THEN
+			SET sourceStackPtr.occurrence[nestingLevel] = 1;
+		END IF;
+		
+		SET sourceStackPtr.sourceLiteral[nestingLevel] = sourceLiteral;
+	END;
