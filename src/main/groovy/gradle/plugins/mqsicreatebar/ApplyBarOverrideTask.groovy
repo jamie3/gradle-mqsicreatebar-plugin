@@ -40,7 +40,8 @@ class ApplyBarOverrideTask extends DefaultTask {
 			}
 			
 		} else {
-		// if (ProjectUtil.isMessageBrokerProject(project)) {
+		
+			// if (ProjectUtil.isMessageBrokerProject(project)) {
 				
 			// apply bar override for integration project
 			
