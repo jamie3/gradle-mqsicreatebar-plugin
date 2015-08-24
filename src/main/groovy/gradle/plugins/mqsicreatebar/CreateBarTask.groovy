@@ -68,7 +68,7 @@ class CreateBarTask extends DefaultTask {
 			def barFileName = "build/" + config.barFileName.replaceAll(" ", "_") + "-" + project.version + ".bar"
 			if (new File(barFileName).exists() == false) {
 			
-				def cmd = "mqsicreatebar -data $workspace -b $barFileName -p \"$projects\" -o \"$o\" -cleanBuild -deployAsSource -trace"
+				def cmd = "mqsicreatebar -data $workspace -b $barFileName -p \"$projects\" -o $o -cleanBuild -trace"
 				
 				executeCommand(cmd)
 				

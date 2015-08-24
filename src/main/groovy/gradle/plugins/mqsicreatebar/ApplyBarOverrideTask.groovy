@@ -2,6 +2,7 @@ package gradle.plugins.mqsicreatebar
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
+
 import static gradle.plugins.mqsicreatebar.Debug.*
 
 /**
@@ -45,15 +46,15 @@ class ApplyBarOverrideTask extends DefaultTask {
 				
 			// apply bar override for integration project
 			
-			/*println "Applying bar override for ${project.name}"
+			println "Applying bar override for ${project.name}"
 			
 			def config = ProjectUtil.getConfigFile(project)
 			
 			// extract the key/values from the "environment" for each bar file to override
-			config.barFile?.each { it ->
+			config.environment.barFile?.each { it ->
 				def barSubName = it.getKey()
 				applyBarOverrideFromConfig(barSubName, config.barFile.getAt(barSubName))
-			}*/
+			}
 		}
 	}
 	
