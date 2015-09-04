@@ -2,6 +2,7 @@ package gradle.plugins.mqsicreatebar
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
+
 import static gradle.plugins.mqsicreatebar.Debug.*
 
 /**
@@ -38,13 +39,13 @@ class CreateBarTask extends DefaultTask {
 		} else {
 			//if (ProjectUtil.isMessageBrokerProject(project)) {
 		
-			println "Building integration project ${project.name}"
-		
 			def config = ProjectUtil.getConfigFile(project)
 			
 			def workspace = config.workspace
 			
-			def projects = config.projects.join(' ')
+			def projects = config.projects instanceof java.util.List ? config.projects?.join(' ') : []
+			
+			def libraries = config.libraries instanceof java.util.List ? config.libraries?.join(' ') : []
 			
 			// when we have an integration project the user must explicitly define which files should be included in the bar file
 			def o = config.files?.join(' ')
@@ -68,7 +69,24 @@ class CreateBarTask extends DefaultTask {
 			def barFileName = "build/" + config.barFileName.replaceAll(" ", "_") + "-" + project.version + ".bar"
 			if (new File(barFileName).exists() == false) {
 			
-				def cmd = "mqsicreatebar -data $workspace -b $barFileName -p \"$projects\" -o $o -cleanBuild -trace"
+				def cmd = ""
+				
+				// create library
+				if (libraries.size() > 0) {
+					
+					println "Building library ${project.name}"
+		
+					cmd = "mqsicreatebar -data $workspace -b $barFileName -l \"$libraries\" -cleanBuild -trace"
+					
+				} else if (projects.size > 0) {
+					
+					println "Building integration project ${project.name}"
+		
+					cmd = "mqsicreatebar -data $workspace -b $barFileName -p \"$projects\" -o $o -cleanBuild -trace"
+					
+				} else {
+					throw new Exception("One of 'projects' or 'libraries' must be defined in the build.config");
+				}
 				
 				executeCommand(cmd)
 				
