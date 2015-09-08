@@ -1,6 +1,6 @@
 /build/
 /build/
-/.metadata/*
+.metadata
 bin/
 .gradle
 .settings
