@@ -91,11 +91,11 @@ class ApplyBarOverrideTask extends DefaultTask {
 		envConfig.each {
 			def resourceName = it.getKey()
 			def resourceConfig = envConfig.getAt(resourceName)
-			println "Found resource $resourceName"	
+			debug "Found resource $resourceName"	
 			
 			def props = extractPropertiesAndValues(resourceName, resourceConfig)
 			
-			println "Found override " + props
+			debug "  Found override " + props
 			
 			overridesMap << props
 		}
@@ -116,7 +116,7 @@ class ApplyBarOverrideTask extends DefaultTask {
 			def newBarFileName = projectDir + "/build/$barName-$envName$ext"
 			
 			// command to apply the bar override with stage/prod deployment descriptors
-			def cmd = "mqsiapplybaroverride -b $barFileName -o $newBarFileName -m \"$manualOverridesArg\""
+			def cmd = "mqsiapplybaroverride -b \"$barFileName\" -o \"$newBarFileName\" -m \"$manualOverridesArg\""
 			debug cmd
 		
 			def process = cmd.execute()

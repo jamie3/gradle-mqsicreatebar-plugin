@@ -85,14 +85,14 @@ Deletes all bar files from the build folder
 gradle clean
 ```
 
-### Build Application Projects ###
+### Build Application Project ###
 Creates a bar file from the build.gradle using the default properties from the project
 
 ```
 gradle build
 ```
 
-### Build Integration Projects ###
+### Build Integration Project ###
 Creates bar file(s) from an integration project. For an integration project you must create a build.config file alongside the build.gradle file. An example of the build.config file is shown below.
 
 ```
@@ -102,7 +102,7 @@ workspace = '../'
 # Name of the bar file that the plugin will create
 barFileName = MyBarFile
 
-# Integrqation projects to include
+# Integration projects to include
 projects = [
 	"MyProject"
 ]
@@ -124,6 +124,19 @@ This will produce the bar file:
 
 ```
 build/MyBarFile-1.0.bar
+```
+
+### Build Library ###
+Below is an example config file for building a library bar file:
+
+```
+workspace = '../'
+
+barFileName = 'RoutingRulesTypeB'
+
+libraries = [
+	"RoutingRulesTypeB"	
+]
 ```
 
 ### Build with Overrides ###
