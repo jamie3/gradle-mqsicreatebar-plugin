@@ -36,7 +36,7 @@ buildscript {
         }
     }
     dependencies {
-        classpath 'gradle.plugins.mqsicreatebar:gradle-mqsicreatebar-plugin:1.0'
+        classpath 'gradle.plugins.mqsicreatebar:gradle-mqsicreatebar-plugin:1.1'
     }
 }
 
@@ -92,40 +92,26 @@ Creates a bar file from the build.gradle using the default properties from the p
 gradle build
 ```
 
-### Build Application with Overrides ###
-Creates a bar file from the build.gradle and overrides the default properties in the broker.xml file. For example if we were building verion 1.0 of ApplicationA then:
-
-```
-gradle build -DoverridesFile=prod.properties
-```
-
-This will create the following bar file:
-
-```
-build/ApplicationA-1.0-prod.bar
-```
-
-An example of what a properties file could contain:
-
-```
-com.github.jamie3.MyFlow#Input Directory=properties
-
-filenamePattern=abc.xml
-
-```
-
 ### Build Integration Projects ###
 Creates bar file(s) from an integration project. For an integration project you must create a build.config file alongside the build.gradle file. An example of the build.config file is shown below.
 
 ```
-barFile{
-	Flow1 {
-		include=["flow/Flow1.msgflow"]
-	}
-	Flow2 {
-		include=["flow/Flow2.msgflow"]
-	}
-}
+# The location of the workspace
+workspace = '../'
+
+# Name of the bar file that the plugin will create
+barFileName = MyBarFile
+
+# Integrqation projects to include
+projects = [
+	"MyProject"
+]
+
+# Files to include in the bar file
+files = [
+	"MyProject/myFlow.msgflow",
+	"MessageSet/myMessageSet.mset"
+]
 ```
 
 Afterwards you can execute the build command
@@ -134,15 +120,53 @@ Afterwards you can execute the build command
 gradle build
 ```
 
-This will produce two bar files: 
+This will produce the bar file: 
 
 ```
-build/projectName-1.0-Flow1.bar
-build/projectName-1.0-Flow2.bar
+build/MyBarFile-1.0.bar
 ```
 
-Note: Apply bar override for integration projects is not supported... yet.
+### Build with Overrides ###
+When the bar file is build using the "gradle build" command a broker.xml is created within the bar files META-INF folder. IBM contains an mqsibaroverride command that overrides the properties in the broker.xml file. This plugin allows you to specify these properties within the build.config file.
 
+Example broker.xml file:
+
+```
+<Broker>
+	<CompiledMessageFlow>
+		<ConfigurableProperty override="/abc" uri="myFlow#exampleProperty"/>
+		<ConfigurableProperty override="/def" uri="myFlow#exampleProperty2"/>
+	</CompiledMessageFlow>
+</Broker>
+```
+
+To override the configurable property you must define 
+
+```
+environment {
+	stage {
+		myFlow {
+			exampleProperty = "/tmp"
+			exampleProperty2 = "/tmp2"
+		}
+	}
+	prod {
+		myFlow {
+			exampleProperty = "/var/log"
+			exampleProperty2 = "/var/log2"
+		}
+	}
+}
+```
+
+This will create two bar files:
+
+```
+build/MyBarFile-1.0-stage.bar
+build/MyBarFile-1.0-prod.bar
+```
+
+Each bar file will contain the properties pertaining to environment defined in the build.config file.
 
 ### Debugging ###
 Debugging can be enabled in the plugin as follows:
