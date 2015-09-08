@@ -51,7 +51,7 @@ class ApplyBarOverrideTask extends DefaultTask {
 			def config = ProjectUtil.getConfigFile(project)
 			
 			// extract the key/values from the "environment" for each bar file to override
-			config.environment.barFile?.each { it ->
+			config.environment?.barFile?.each { it ->
 				def barSubName = it.getKey()
 				applyBarOverrideFromConfig(barSubName, config.barFile.getAt(barSubName))
 			}
@@ -61,12 +61,12 @@ class ApplyBarOverrideTask extends DefaultTask {
 	def applyBarOverrideFromConfig(def barSubName, def barFileConfig) {
 		
 		// for each environment we will apply bar overrides and create a bar file
-		barFileConfig.environment?.each { it ->
+		project.environment?.each { it ->
 			
 			def envName = it.getKey()
 			debug "Found environment $envName"
 			
-			def envProps = extractConfig(barFileConfig.environment.getAt(envName))
+			def envProps = extractConfig(project.environment?.getAt(envName))
 			
 			// build the "-m <manualOverrides>"
 			def manualOverrides = new StringBuilder()

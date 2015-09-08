@@ -38,17 +38,27 @@ class CreateBarTask extends DefaultTask {
 			
 		} else {
 			//if (ProjectUtil.isMessageBrokerProject(project)) {
-		
+	
 			def config = ProjectUtil.getConfigFile(project)
 			
 			def workspace = config.workspace
 			
-			def projects = config.projects instanceof java.util.List ? config.projects?.join(' ') : []
+			debug "workspace $workspace"
 			
-			def libraries = config.libraries instanceof java.util.List ? config.libraries?.join(' ') : []
+			def projects = config.projects instanceof java.util.List ? config.projects?.join(' ') : null
+			
+			debug "projects $projects"
+			
+			def libraries = config.libraries instanceof java.util.List ? config.libraries?.join(' ') : null
+			
+			debug "libraries $libraries"
 			
 			// when we have an integration project the user must explicitly define which files should be included in the bar file
-			def o = config.files?.join(' ')
+			def files = []
+			if (config.files instanceof java.util.List) {
+				files = config.files?.join('" "')
+				files = '"' + files + '"'
+			}
 			
 			/*each { it ->
 				
@@ -72,17 +82,17 @@ class CreateBarTask extends DefaultTask {
 				def cmd = ""
 				
 				// create library
-				if (libraries.size() > 0) {
+				if (libraries != null) {
 					
 					println "Building library ${project.name}"
 		
 					cmd = "mqsicreatebar -data $workspace -b $barFileName -l \"$libraries\" -cleanBuild -trace"
 					
-				} else if (projects.size > 0) {
+				} else if (projects != null) {
 					
 					println "Building integration project ${project.name}"
 		
-					cmd = "mqsicreatebar -data $workspace -b $barFileName -p \"$projects\" -o $o -cleanBuild -trace"
+					cmd = "mqsicreatebar -data $workspace -b $barFileName -p \"$projects\" -o $files -cleanBuild -trace"
 					
 				} else {
 					throw new Exception("One of 'projects' or 'libraries' must be defined in the build.config");
