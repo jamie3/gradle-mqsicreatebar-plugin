@@ -21,7 +21,9 @@ This will build and install the plugin to the local maven repo.
 Usage
 -----
 
-To use the plugin in your IIB project add the following into your build.gradle file
+To use the plugin in your IIB project you must create two files, build.gradle and build.config.
+
+build.gradle example:
 
 ```groovy
 
@@ -43,21 +45,37 @@ buildscript {
 apply plugin: 'gradle.plugins.mqsicreatebar'
 ```
 
-Currently this plugin only supports building IIB Application projects (e.g. mqsicreatebar -a <applicationName>). Support for Integration projects will be added in the near future. For each application project an equivalent bar file will be created. Support for packaging multiple applications in a single bar file is not supported.
+build.config contains the configuration settings for the project. For example the build.config can contain properties which mqsiapplybaroverride is performed. See Build with Overrides section below.
+
+Project Structure
+-----------------
+
+Below is an example of the project structure for an application project. For each application project an equivalent bar file will be created. Support for packaging multiple applications in a single bar file is not supported.
 
 The build.gradle file should be placed in the folder alongside your Application project (not the workspace folder). For example:
 
 ```
 /workspace/
+   /.metadata
    /ApplicationA
       build.gradle
+      build.config
+      /build/
+         ApplicationA-1.0.bar
+         ApplicationA-1.0-env1.bar
+         ApplicationA-1.0-env2.bar
    /ApplicationB
      build.gradle
+     build.config
+      /build/
+         ApplicationB-1.0.bar
+         ApplicationB-1.0-env1.bar
+         Applicationb-1.0-env2.bar
    /LIB1
    /LIB2
 ```   
    
-In the above example you would need a build.gradle file for each Application project. When executing "gradle build" task in each project the following will be created.
+In the above example you would need a build.gradle file for each Application project. When executing "gradle build" task in each project the following will be created. If you have environment defined in the build.config file an equivalent bar file will be created. This essentially
 
 ```
 /workspace/
@@ -65,10 +83,14 @@ In the above example you would need a build.gradle file for each Application pro
       build.gradle
       /build/
          ApplicationA-1.0.bar
+         ApplicationA-1.0-env1.bar
+         ApplicationA-1.0-env2.bar
    /ApplicationB
      build.gradle
       /build/
          ApplicationB-1.0.bar
+         ApplicationB-1.0-env1.bar
+         Applicationb-1.0-env2.bar
    /IntegrationProjectA
       /build/
    /LIB1
@@ -153,7 +175,7 @@ Example broker.xml file:
 </Broker>
 ```
 
-To override the configurable property you must define 
+To override the configurable property you must define the following within the build.config file.
 
 ```
 environment {
