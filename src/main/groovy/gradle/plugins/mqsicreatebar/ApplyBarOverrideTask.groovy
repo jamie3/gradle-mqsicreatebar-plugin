@@ -19,39 +19,41 @@ class ApplyBarOverrideTask extends DefaultTask {
 	// this is the bar that was created by the CreateBarTask
 	String barFileName
 	
-	String projectDir
-	
 	@TaskAction
 	def applyBarOverride() {
 		
 		def config = ProjectUtil.getConfigFile(project)
 		def buildDir = project.getBuildDir()
-		projectDir = project.getProjectDir()
-		barName = config.barFileName.replaceAll(" ", "_") + "-" + project.version
-		barFileName = projectDir + "/build/$barName$ext"
-		
-		if (new File(barFileName).exists() == false) {
-			throw new FileNotFoundException(barFileName)
-		}
 		
 		if (ProjectUtil.isApplicationProject(project)) {
 			
+			barName = project.name.replaceAll(" ", "_") + "-" + project.version
+			barFileName = project.projectDir.absolutePath + "/build/$barName$ext"
+			
+			if (new File(barFileName).exists() == false) {
+				throw new FileNotFoundException(barFileName)
+			}
 			
 			// if the user has supplied a properties file at the command line
 			// then we will apply the properties using mqsiapplybaroverride command
 			// otherwise we will leave the bar file alone
-			println barFileName
+			println "Found application $barFileName"
 			
-			def overridesFile = System.properties['overridesFile']
-			
-			if (overridesFile) { 
-				
-				// user has specified an overrides file
-				applyBarOverrideFromProperties(barFileName, overridesFile)
+			// extract the key/values from the "environment" for each bar file to override
+			config.environment?.each { it ->
+				def envName = it.getKey()
+				applyBarOverrideForEnvironment(config, envName)
 			}
 			
 		} else {
 		
+			barName = config.barFileName.replaceAll(" ", "_") + "-" + project.version
+			barFileName = project.projectDir.absolutePath + "/build/$barName$ext"
+			
+			if (new File(barFileName).exists() == false) {
+				throw new FileNotFoundException(barFileName)
+			}
+			
 			// if (ProjectUtil.isMessageBrokerProject(project)) {
 				
 			// apply bar override for integration project
@@ -113,10 +115,10 @@ class ApplyBarOverrideTask extends DefaultTask {
 			}
 			
 			// this is the bar that was created by the CreateBarTask
-			def newBarFileName = projectDir + "/build/$barName-$envName$ext"
+			def newBarFileName = project.projectDir.absolutePath + "/build/$barName-$envName$ext"
 			
 			// command to apply the bar override with stage/prod deployment descriptors
-			def cmd = "mqsiapplybaroverride -b \"$barFileName\" -o \"$newBarFileName\" -m \"$manualOverridesArg\""
+			def cmd = "mqsiapplybaroverride -b \"$barFileName\" -k \"$project.name\" -o \"$newBarFileName\" -m \"$manualOverridesArg\""
 			debug cmd
 		
 			def process = cmd.execute()
@@ -124,15 +126,21 @@ class ApplyBarOverrideTask extends DefaultTask {
 			process.consumeProcessOutput(System.out, System.err)
 			process.waitForOrKill(60000L)
 			
-			if (process.exitValue() != 0) {
+			int exitValue = process.exitValue()
+			
+			if (exitValue != 0) {
 				throw new Exception("Apply bar override failed. Error code " + process.exitValue() + "\n$cmd")
 			}
 			
 			println "Created $newBarFileName"
 			
+			if (new File(newBarFileName).exists() == false) {
+				throw new FileNotFoundException(newBarFileName, "Bar override failed")
+			}
+			
 		} else {
 		
-			println "Found environment #envName but there were no properties to override"
+			throw new Exception("Found environment #envName but there were no properties to override")
 		}
 	}
 	
