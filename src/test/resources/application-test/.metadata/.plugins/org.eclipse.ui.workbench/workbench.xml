@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <workbench version="2.0">
 <workbenchAdvisor/>
-<window height="768" width="1024" x="204" y="275">
+<window height="768" width="1341" x="204" y="275">
 <fastViewData fastViewLocation="1024">
 <orientation position="512" view="com.ibm.xtools.mde.guidance"/>
 </fastViewData>
@@ -10,22 +10,22 @@
 </perspectiveBar>
 <coolbarLayout locked="0">
 <coolItem id="group.file" itemType="typeGroupMarker"/>
-<coolItem id="org.eclipse.ui.workbench.file" itemType="typeToolBarContribution" x="358" y="22"/>
+<coolItem id="org.eclipse.ui.workbench.file" itemType="typeToolBarContribution" x="238" y="22"/>
 <coolItem id="additions" itemType="typeGroupMarker"/>
 <coolItem id="com.ibm.etools.msg.reporting.infrastructure.actionSet" itemType="typeToolBarContribution" x="38" y="22"/>
 <coolItem id="com.ibm.etools.patterns.PatternActionSet" itemType="typeToolBarContribution" x="38" y="22"/>
 <coolItem id="com.rational.clearcase.ActionSet" itemType="typeToolBarContribution" x="-1" y="-1"/>
-<coolItem id="org.eclipse.debug.ui.launchActionSet" itemType="typeToolBarContribution" x="129" y="22"/>
-<coolItem id="org.eclipse.search.searchActionSet" itemType="typeToolBarContribution" x="53" y="22"/>
+<coolItem id="org.eclipse.debug.ui.launchActionSet" itemType="typeToolBarContribution" x="141" y="22"/>
+<coolItem id="org.eclipse.search.searchActionSet" itemType="typeToolBarContribution" x="57" y="22"/>
 <coolItem id="org.eclipse.wst.xml.ui.perspective.NewFileToolBar" itemType="typeToolBarContribution" x="-1" y="-1"/>
 <coolItem id="org.eclipse.wst.xml.ui.design.DesignToolBar" itemType="typeToolBarContribution" x="-1" y="-1"/>
 <coolItem id="com.ibm.etools.references.ui.debugTrimToolbarContributionToolbar" itemType="typeToolBarContribution" x="-1" y="-1"/>
 <coolItem id="group.nav" itemType="typeGroupMarker"/>
-<coolItem id="org.eclipse.ui.workbench.navigate" itemType="typeToolBarContribution" x="190" y="22"/>
+<coolItem id="org.eclipse.ui.workbench.navigate" itemType="typeToolBarContribution" x="206" y="22"/>
 <coolItem id="group.editor" itemType="typeGroupMarker"/>
-<coolItem id="com.ibm.etools.mft.flow.editor" itemType="typeToolBarContribution" x="387" y="22"/>
+<coolItem id="com.ibm.etools.mft.flow.editor" itemType="typeToolBarContribution" x="403" y="22"/>
 <coolItem id="group.help" itemType="typeGroupMarker"/>
-<coolItem id="com.ibm.support.feedback.errorreports.ui.crashReportToolbar" itemType="typeToolBarContribution" x="129" y="22"/>
+<coolItem id="com.ibm.support.feedback.errorreports.ui.crashReportToolbar" itemType="typeToolBarContribution" x="149" y="22"/>
 <coolItem id="com.ibm.cic.licensing.common.ui.controlContribution" itemType="typeToolBarContribution" x="-1" y="-1"/>
 <coolItem id="org.eclipse.ui.workbench.help" itemType="typeToolBarContribution" x="-1" y="-1"/>
 </coolbarLayout>
@@ -36,20 +36,12 @@
 <folder appearance="1" expanded="2">
 <presentation id="org.eclipse.ui.presentations.WorkbenchPresentationFactory">
 <part id="0"/>
-<part id="1"/>
-<part id="2"/>
 </presentation>
 </folder>
 </info>
 </editorArea>
-<editor id="com.ibm.etools.mft.flow.editor" name="Test.msgflow" partName="Test.msgflow" path="C:/dev/code/gradle-mqsicreatebar-plugin/src/test/resources/iib-project/example-application/test/flow/Test.msgflow" title="Test.msgflow" tooltip="example-application/test/flow/Test.msgflow" workbook="DefaultEditorWorkbook">
+<editor activePart="true" focus="true" id="com.ibm.etools.mft.flow.editor" name="Test.msgflow" partName="Test.msgflow" path="C:/dev/code/gradle-mqsicreatebar-plugin/src/test/resources/application-test/example-application/test/flow/Test.msgflow" title="Test.msgflow" tooltip="example-application/test/flow/Test.msgflow" workbook="DefaultEditorWorkbook">
 <input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/example-application/test/flow/Test.msgflow"/>
-</editor>
-<editor id="com.ibm.etools.mft.flow.editor" name="Flow2.msgflow" partName="Flow2.msgflow" path="C:/dev/code/gradle-mqsicreatebar-plugin/src/test/resources/iib-project/example-integration/example/flow/Flow2.msgflow" title="Flow2.msgflow" tooltip="example-integration/example/flow/Flow2.msgflow" workbook="DefaultEditorWorkbook">
-<input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/example-integration/example/flow/Flow2.msgflow"/>
-</editor>
-<editor activePart="true" focus="true" id="com.ibm.etools.mft.flow.editor" name="Flow1.msgflow" partName="Flow1.msgflow" path="C:/dev/code/gradle-mqsicreatebar-plugin/src/test/resources/iib-project/example-integration/example/flow/Flow1.msgflow" title="Flow1.msgflow" tooltip="example-integration/example/flow/Flow1.msgflow" workbook="DefaultEditorWorkbook">
-<input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/example-integration/example/flow/Flow1.msgflow"/>
 </editor>
 </editors>
 <views>
@@ -74,14 +66,14 @@
 <filter element="Types (Schema Files)"/>
 <filter element="Empty Parent Broker Schemas"/>
 </filters>
+<selection>
+<element path="0*/example-application/test/flow/Test.msgflow"/>
+</selection>
 <expanded>
 <element path="example-application"/>
 <element path="example-application|Flows"/>
 <element path="example-application|Flows|test.flow"/>
 <element path="Independent Resources"/>
-<element path="Independent Resources|example-integration"/>
-<element path="Independent Resources|example-integration|Flows"/>
-<element path="Independent Resources|example-integration|Flows|example.flow"/>
 </expanded>
 <elementMap name="[example-application]">
 <item factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/example-application" type="4"/>
@@ -227,10 +219,13 @@
 <editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="com.ibm.etools.mft.flow.editor" path="/example-application/test/flow/Test.msgflow"/>
 <editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="com.ibm.etools.mft.flow.editor" path="/example-integration/example/flow/Flow2.msgflow"/>
 <editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="com.ibm.etools.mft.flow.editor" path="/example-integration/example/flow/Flow1.msgflow"/>
+<editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="com.ibm.etools.mft.flow.editor" path="/example-application/test/flow/Test.msgflow"/>
 </editors>
 <item historyLabel="Test.msgflow" index="0"/>
 <item historyLabel="Flow2.msgflow" index="1"/>
-<item active="true" historyLabel="Flow1.msgflow" index="2"/>
+<item historyLabel="Flow1.msgflow" index="2"/>
+<item historyLabel="Test.msgflow" index="3"/>
+<item active="true" historyLabel="Test.msgflow" index="3"/>
 </navigationHistory>
 <input factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/" type="8"/>
 </page>
@@ -248,14 +243,14 @@
 </trimLayout>
 </window>
 <mruList>
+<file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="com.ibm.etools.mft.flow.editor" name="Test.msgflow" tooltip="example-application/test/flow/Test.msgflow">
+<persistable path="/example-application/test/flow/Test.msgflow"/>
+</file>
 <file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="com.ibm.etools.mft.flow.editor" name="Flow1.msgflow" tooltip="example-integration/example/flow/Flow1.msgflow">
 <persistable path="/example-integration/example/flow/Flow1.msgflow"/>
 </file>
 <file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="com.ibm.etools.mft.flow.editor" name="Flow2.msgflow" tooltip="example-integration/example/flow/Flow2.msgflow">
 <persistable path="/example-integration/example/flow/Flow2.msgflow"/>
-</file>
-<file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="com.ibm.etools.mft.flow.editor" name="Test.msgflow" tooltip="example-application/test/flow/Test.msgflow">
-<persistable path="/example-application/test/flow/Test.msgflow"/>
 </file>
 </mruList>
 </workbench>

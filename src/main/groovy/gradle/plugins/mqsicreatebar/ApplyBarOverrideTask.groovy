@@ -90,7 +90,7 @@ class ApplyBarOverrideTask extends DefaultTask {
 		 * 
 		 * 
 		 */
-		envConfig.each {
+		/*envConfig.each {
 			def resourceName = it.getKey()
 			def resourceConfig = envConfig.getAt(resourceName)
 			debug "Found resource $resourceName"	
@@ -100,19 +100,30 @@ class ApplyBarOverrideTask extends DefaultTask {
 			debug "  Found override " + props
 			
 			overridesMap << props
-		}
+		}*/
 		
-		if (overridesMap.size() > 0) {
+		if (envConfig.overrides?.size() > 0) {
 			
 			println "Applying bar override for environment $envName"
 			
 			String manualOverridesArg = ""
 			
-			overridesMap.each {
-				def key = it.key
-				def val = it.value
-				manualOverridesArg += "$key=$val "
+			envConfig.overrides.each {
+				def override = it
+				manualOverridesArg += "$override "
 			}
+			/*
+			overridesMap.each {
+				def flowName = it.key
+				flowName.each { it2 ->
+					def nodeName = it2.key
+					nodeName.each {  it3 ->
+						def propertyName = it3.value
+						def propertyValue = it3.value
+						manualOverridesArg += "$flowName#$nodeName=$val "
+					}
+				}	
+			}*/
 			
 			// this is the bar that was created by the CreateBarTask
 			def newBarFileName = project.projectDir.absolutePath + "/build/$barName-$envName$ext"
@@ -140,7 +151,7 @@ class ApplyBarOverrideTask extends DefaultTask {
 			
 		} else {
 		
-			throw new Exception("Found environment #envName but there were no properties to override")
+			throw new Exception("Found environment $envName but there were no 'overrides' list")
 		}
 	}
 	
